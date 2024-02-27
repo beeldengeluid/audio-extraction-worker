@@ -12,7 +12,8 @@ class CallbackResponse(TypedDict):
 
 # These are the types of output this worker (possibly) provides (depending on configuration)
 class OutputType(Enum):
-    AUDIO = "audio"  # produced by feature_extraction.py
+    AUDIO = "audio"  # name of output type, should just have a significant name, no other restrictions
+                     # (as far as I understand)
     PROVENANCE = "provenance"  # produced by provenance.py
 
 @dataclass
