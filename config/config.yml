@@ -29,7 +29,7 @@ OUTPUT:
     S3_BUCKET: bucket-name  # bucket reserved for 1 type of output
     S3_FOLDER_IN_BUCKET: folder  # folder within the bucket
 WORKER_SETTINGS:
-    OUTPUT_SAMPLERATE_HZ: '' # change to integer if you want a specific rate, otherwise it will take the samplerate of the video
+    OUTPUT_SAMPLERATE_HZ: None # change to integer if you want a specific rate, otherwise it will take the samplerate of the video
     OUTPUT_FILE_EXTENSION: .wav
     CONVERT_TO_MONO: false
 DANE_DEPENDENCIES:
