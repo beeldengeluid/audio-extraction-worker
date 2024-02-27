@@ -96,7 +96,7 @@ def validate_config(config: CfgNode, validate_file_paths: bool = True) -> bool:
             assert check_setting(
                 config.OUTPUT.S3_FOLDER_IN_BUCKET, str
             ), "OUTPUT.S3_FOLDER_IN_BUCKET"
-        
+
         # settings for this worker specifically
         assert check_setting(
             config.WORKER_SETTINGS.OUTPUT_SAMPLERATE_HZ, int, True
