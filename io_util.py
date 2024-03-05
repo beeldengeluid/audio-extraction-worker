@@ -83,7 +83,7 @@ def get_archive_file_path(source_id: str) -> str:
 
 
 def get_output_file_name(source_id: str, output_type: OutputType) -> str:
-    output_file_name = ""  
+    output_file_name = ""
     match output_type:
         case OutputType.PROVENANCE:
             output_file_name = source_id + "_provenance.json"
@@ -155,8 +155,9 @@ def delete_local_output(source_id: str) -> bool:
 
 # TODO implement some more validation
 def _is_valid_output(output_dir: str) -> bool:
-    return os.path.exists(os.path.join(output_dir, OutputType.PROVENANCE.value))\
-    and os.path.exists(os.path.join(output_dir, OutputType.AUDIO.value))
+    provenance_exists = os.path.exists(os.path.join(output_dir, OutputType.PROVENANCE.value))
+    audio_exists = os.path.exists(os.path.join(output_dir, OutputType.AUDIO.value))
+    return provenance_exists and audio_exists
 
 
 def _validate_transfer_config() -> bool:
