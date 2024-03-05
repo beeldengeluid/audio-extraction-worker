@@ -136,7 +136,11 @@ if __name__ == "__main__":
         logger.info("Running feature extraction with INPUT.TEST_INPUT_PATH ")
         if cfg.INPUT.TEST_INPUT_PATH:
             processing_result, full_provenance_chain = main_data_processor.run(
-                os.path.join(cfg.FILE_SYSTEM.BASE_MOUNT, cfg.FILE_SYSTEM.INPUT_DIR, cfg.INPUT.TEST_INPUT_PATH)
+                os.path.join(
+                    cfg.FILE_SYSTEM.BASE_MOUNT,
+                    cfg.FILE_SYSTEM.INPUT_DIR,
+                    cfg.INPUT.TEST_INPUT_PATH,
+                )
             )
             logger.info("Results after applying desired I/O")
             logger.info(processing_result)
@@ -147,9 +151,7 @@ if __name__ == "__main__":
                 else None
             )
         else:
-            logger.error(
-                "Please configure an input file in INPUT.TEST_INPUT_FILE"
-            )
+            logger.error("Please configure an input file in INPUT.TEST_INPUT_FILE")
             sys.exit()
     else:
         logger.info("Starting the worker")

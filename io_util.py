@@ -155,7 +155,9 @@ def delete_local_output(source_id: str) -> bool:
 
 # TODO implement some more validation
 def _is_valid_output(output_dir: str) -> bool:
-    provenance_exists = os.path.exists(os.path.join(output_dir, OutputType.PROVENANCE.value))
+    provenance_exists = os.path.exists(
+        os.path.join(output_dir, OutputType.PROVENANCE.value)
+    )
     audio_exists = os.path.exists(os.path.join(output_dir, OutputType.AUDIO.value))
     return provenance_exists and audio_exists
 
