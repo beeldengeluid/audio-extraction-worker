@@ -12,7 +12,7 @@ from dane.s3_util import S3Store, parse_s3_uri, validate_s3_uri
 from models import (
     OutputType,
     Provenance,
-    ThisWorkerInput,
+    AudioExtractionInput,
 )
 
 
@@ -244,10 +244,10 @@ def delete_input_file(input_file: str, source_id: str, actually_delete: bool) ->
     return True  # return True even if empty dirs were not removed
 
 
-def obtain_input_file(s3_uri: str) -> ThisWorkerInput:
+def obtain_input_file(s3_uri: str) -> AudioExtractionInput:
 
     if not validate_s3_uri(s3_uri):
-        return ThisWorkerInput(500, f"Invalid S3 URI: {s3_uri}")
+        return AudioExtractionInput(500, f"Invalid S3 URI: {s3_uri}")
 
     source_id = source_id_from_s3_uri(s3_uri)
     start_time = time()
@@ -275,7 +275,7 @@ def obtain_input_file(s3_uri: str) -> ThisWorkerInput:
             input_data={},
             output_data={"file_path": input_file_path},
         )
-        return ThisWorkerInput(
+        return AudioExtractionInput(
             200,
             f"Downloaded input from: {s3_uri}",
             source_id_from_s3_uri(s3_uri),  # source_id
@@ -283,7 +283,7 @@ def obtain_input_file(s3_uri: str) -> ThisWorkerInput:
             provenance,
         )
     logger.error("Failed to download input data from S3")
-    return ThisWorkerInput(500, f"Failed to download: {s3_uri}")
+    return AudioExtractionInput(500, f"Failed to download: {s3_uri}")
 
 
 def fetch_input_s3_uri(handler, doc: Document) -> str:
