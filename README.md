@@ -1,2 +1,2 @@
 # dane-audio-extraction-worker
-Extracts audio from video files (for further processing)
+DANE worker that extracts audio files from video files (for further processing in other DANE workers).
