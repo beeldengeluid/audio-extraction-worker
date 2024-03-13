@@ -47,8 +47,8 @@ class AudioExtractionWorker(base_worker):
             logger.info("Generator was None, creating it now")
             self.generator = {
                 "id": "dane-audio-extraction-worker",
-                "type": "Software",
-                "name": "UES",
+                "type": "dane-audio-extraction-worker",
+                "name": "Audio Extraction",
                 "homepage": "https://github.com/beeldengeluid/dane-audio-extraction-worker",
             }
 
@@ -134,6 +134,7 @@ if __name__ == "__main__":
     # see if the test file must be run
     if args.run_test_file != "n":
         logger.info("Running feature extraction with INPUT.TEST_INPUT_PATH ")
+        logger.info(os.environ.keys())
         if cfg.INPUT.TEST_INPUT_PATH:
             processing_result, full_provenance_chain = main_data_processor.run(
                 os.path.join(

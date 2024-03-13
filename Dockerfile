@@ -9,22 +9,26 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-r
 # - Storing the source code: /src
 RUN mkdir /root/.DANE /mnt/dane-fs /src /model
 
-
 WORKDIR /src
 
-# copy the pyproject file and install all the dependencies first
-RUN pip install --upgrade pip
-RUN pip install poetry
-COPY ./pyproject.toml /src
-RUN --mount=type=cache,target=/home/.cache/pypoetry/cache \
-    --mount=type=cache,target=/home/.cache/pypoetry/artifacts \
-    poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+COPY pyproject.toml poetry.lock ./
+
+RUN pip install poetry==1.8.2
+
+RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+
+# copy the config file to /root/.DANE
+COPY ./config/config.yml /root/.DANE
 
 # copy the rest into the source dir
 COPY ./ /src
 
 # Write provenance info about software versions to file
-# RUN echo "dane-audio-extraction-worker;https://github.com/beeldengeluid/dane-audio-extraction-worker/commit/$(git rev-parse HEAD)" >> /software_provenance.txt
+RUN echo "dane-audio-extraction-worker;https://github.com/beeldengeluid/dane-audio-extraction-worker/commit/$(git rev-parse HEAD)" >> /software_provenance.txt
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

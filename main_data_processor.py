@@ -151,7 +151,7 @@ def apply_desired_io_on_output(
     model_input: AudioExtractionInput,
     proc_result: AudioExtractionOutput,
     delete_input_on_completion: bool,
-    delete_output_on_completetion: bool,
+    delete_output_on_completion: bool,
     transfer_output_on_completion: bool,
 ) -> CallbackResponse:
     # raise exception on failure
@@ -177,7 +177,7 @@ def apply_desired_io_on_output(
         }
 
     # clear the output files (if configured so)
-    if delete_output_on_completetion:
+    if delete_output_on_completion:
         delete_success = delete_local_output(source_id)
         if not delete_success:
             # NOTE: just a warning for now, but one to keep an eye out for

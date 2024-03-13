@@ -18,7 +18,7 @@ FILE_SYSTEM:
     INPUT_DIR: input-files
     OUTPUT_DIR: output-files
 INPUT:
-    TEST_INPUT_PATH: testsource__testcarrier/inputfile.txt
+    TEST_INPUT_PATH: testsource__testcarrier/inputfile.mp4
     S3_ENDPOINT_URL: https://s3-host
     MODEL: s3://bucket/model
     DELETE_ON_COMPLETION: False
