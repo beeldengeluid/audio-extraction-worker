@@ -88,7 +88,7 @@ def get_output_file_name(source_id: str, output_type: OutputType) -> str:
         case OutputType.PROVENANCE:
             output_file_name = source_id + "_provenance.json"
         case OutputType.AUDIO:
-            output_file_name = source_id + cfg.WORKER_SETTINGS.OUTPUT_FILE_EXTENSION
+            output_file_name = source_id + cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_FILE_EXTENSION
     return output_file_name
 
 

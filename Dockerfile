@@ -7,7 +7,7 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-r
 # - Injecting config.yml: /root/.DANE
 # - Mount point for input & output files: /mnt/dane-fs
 # - Storing the source code: /src
-RUN mkdir /root/.DANE /mnt/dane-fs /src /model
+RUN mkdir /root/.DANE /mnt/dane-fs /src /src/data
 
 WORKDIR /src
 

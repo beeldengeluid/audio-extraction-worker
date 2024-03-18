@@ -54,7 +54,7 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
             "DANE worker that extracts audio files from video files (for further processing in other DANE workers)"
         ),
         input_data={"input_file_path": input_file_path},
-        parameters=dict(cfg.WORKER_SETTINGS),
+        parameters=dict(cfg.AUDIO_EXTRACTION_SETTINGS),
         software_version=obtain_software_versions(DANE_WORKER_ID),
     )
     provenance_chain = []  # will contain the steps of the top-level provenance
@@ -121,7 +121,14 @@ def apply_model(
     logger.info("Starting model application")
     start = time.time() * 1000  # convert to ms
     destination = get_output_file_path(video_input.source_id, OutputType.AUDIO)
-    subprocess.call(["ffmpeg", "-i", video_input.input_file_path, destination])
+    ffmpeg_cmd = ["ffmpeg", "-i", video_input.input_file_path]
+    if cfg.AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO:
+        ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
+    if cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ != "None":
+        ffmpeg_cmd = ffmpeg_cmd + ["-ar", cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ]
+    subprocess.call(ffmpeg_cmd + [destination])
+    logger.info("Executed command:")
+    logger.info(ffmpeg_cmd + [destination])
     end = time.time() * 1000  # convert to ms
 
     model_application_provenance = Provenance(
@@ -129,9 +136,9 @@ def apply_model(
         activity_description="converted a video file to audio format",
         input_data=video_input.input_file_path,
         start_time_unix=start,
-        parameters={cfg.AUDIO_EXTRACTION_SETTINGS},
+        parameters=cfg.AUDIO_EXTRACTION_SETTINGS,
         software_version="0.1.0",
-        output_data={destination},
+        output_data=destination,
         processing_time_ms=end - start,
     )
 
