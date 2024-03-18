@@ -124,12 +124,17 @@ def apply_model(
 ) -> AudioExtractionOutput:
     logger.info("Starting model application")
     start = time.time() * 1000  # convert to ms
-    destination = get_output_file_path(video_input.source_id, OutputType.AUDIO, video_input.input_file_name)
+    destination = get_output_file_path(
+        video_input.source_id, OutputType.AUDIO, video_input.input_file_name
+    )
     ffmpeg_cmd = ["ffmpeg", "-i", video_input.input_file_path]
     if cfg.AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO:
         ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
     if cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ != "None":
-        ffmpeg_cmd = ffmpeg_cmd + ["-ar", cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ]
+        ffmpeg_cmd = ffmpeg_cmd + [
+            "-ar",
+            cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ,
+        ]
     subprocess.call(ffmpeg_cmd + [destination])
     logger.info("Executed command:")
     logger.info(ffmpeg_cmd + [destination])

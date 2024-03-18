@@ -88,13 +88,17 @@ def get_output_file_name(source_id: str, output_type: OutputType) -> str:
         case OutputType.PROVENANCE:
             output_file_name = source_id + "_provenance.json"
         case OutputType.AUDIO:
-            output_file_name = source_id + cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_FILE_EXTENSION
+            output_file_name = (
+                source_id + cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_FILE_EXTENSION
+            )
     return output_file_name
 
 
 # output file name of the final .pt file that will be uploaded to S3
 # TODO decide whether to tar.gz this as well
-def get_output_file_path(source_id: str, output_type: OutputType, file_name: str = "") -> str:
+def get_output_file_path(
+    source_id: str, output_type: OutputType, file_name: str = ""
+) -> str:
     if file_name == "":
         file_name = source_id
     return os.path.join(
