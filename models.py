@@ -25,6 +25,7 @@ class AudioExtractionInput:
     source_id: str = ""  # <program ID>__<carrier ID>
     input_file_path: str = ""  # where the video was downloaded from
     provenance: Optional[Provenance] = None  # mostly: how long did it take to download
+    input_file_name: str = ""  # the filename of the video without the extension
 
 
 @dataclass
