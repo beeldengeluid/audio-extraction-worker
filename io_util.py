@@ -96,15 +96,11 @@ def get_output_file_name(source_id: str, output_type: OutputType) -> str:
 
 # output file name of the final .pt file that will be uploaded to S3
 # TODO decide whether to tar.gz this as well
-def get_output_file_path(
-    source_id: str, output_type: OutputType, file_name: str = ""
-) -> str:
-    if file_name == "":
-        file_name = source_id
+def get_output_file_path(source_id: str, output_type: OutputType) -> str:
     return os.path.join(
         get_base_output_dir(source_id),
         output_type.value,
-        get_output_file_name(file_name, output_type),
+        get_output_file_name(source_id, output_type),
     )
 
 

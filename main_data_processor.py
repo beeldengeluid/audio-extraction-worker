@@ -59,9 +59,6 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
     )
     provenance_chain = []  # will contain the steps of the top-level provenance
 
-    input_file_name = input_file_path.split("/")[-1]
-    input_file_name = input_file_name.split(".")[0]
-
     # S3 URI, local tar.gz or locally extracted tar.gz is allowed
     if validate_s3_uri(input_file_path):
         model_input = obtain_input_file(input_file_path)
@@ -77,7 +74,6 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
             source_id,
             input_file_path,
             None,  # no download provenance when using local file
-            input_file_name,
         )
 
     # add the download provenance
@@ -102,7 +98,7 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
         },
         provenance_chain=provenance_chain,
         provenance_file_path=get_output_file_path(
-            model_input.source_id, OutputType.PROVENANCE, model_input.input_file_name
+            model_input.source_id, OutputType.PROVENANCE
         ),
     )
 
@@ -124,9 +120,7 @@ def apply_model(
 ) -> AudioExtractionOutput:
     logger.info("Starting model application")
     start = time.time() * 1000  # convert to ms
-    destination = get_output_file_path(
-        video_input.source_id, OutputType.AUDIO, video_input.input_file_name
-    )
+    destination = get_output_file_path(video_input.source_id, OutputType.AUDIO)
     ffmpeg_cmd = ["ffmpeg", "-i", video_input.input_file_path]
     if cfg.AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO:
         ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
