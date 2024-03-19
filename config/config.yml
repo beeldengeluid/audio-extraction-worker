@@ -31,6 +31,6 @@ OUTPUT:
 AUDIO_EXTRACTION_SETTINGS:
     OUTPUT_SAMPLERATE_HZ: None # change to integer if you want a specific rate, otherwise it will take the samplerate of the video
     OUTPUT_FILE_EXTENSION: .wav
-    CONVERT_TO_MONO: false
+    CONVERT_TO_MONO: False
 DANE_DEPENDENCIES:
     - input-generating-worker
