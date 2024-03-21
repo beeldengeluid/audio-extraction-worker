@@ -23,14 +23,14 @@ INPUT:
     MODEL: s3://bucket/model
     DELETE_ON_COMPLETION: False
 OUTPUT:
-    DELETE_ON_COMPLETION: True
+    DELETE_ON_COMPLETION: False
     TRANSFER_ON_COMPLETION: True
     S3_ENDPOINT_URL: https://s3-host
     S3_BUCKET: bucket-name  # bucket reserved for 1 type of output
     S3_FOLDER_IN_BUCKET: folder  # folder within the bucket
 AUDIO_EXTRACTION_SETTINGS:
-    OUTPUT_SAMPLERATE_HZ: None # change to integer if you want a specific rate, otherwise it will take the samplerate of the video
+    OUTPUT_SAMPLERATE_HZ: 0 # change if you want a specific rate, otherwise set to 0 to use the samplerate of the video
     OUTPUT_FILE_EXTENSION: .wav
-    CONVERT_TO_MONO: False
+    CONVERT_TO_MONO: True
 DANE_DEPENDENCIES:
     - input-generating-worker

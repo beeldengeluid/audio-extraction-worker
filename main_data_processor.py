@@ -84,7 +84,7 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
     generate_output_dirs(model_input.source_id)
 
     # apply model to input & extract features
-    proc_result = apply_model(model_input)
+    proc_result = apply_ffmpeg(model_input)
 
     if proc_result.provenance:
         provenance_chain.append(proc_result.provenance)
@@ -115,7 +115,7 @@ def run(input_file_path: str) -> Tuple[CallbackResponse, Optional[Provenance]]:
     return validated_output, full_provenance_chain
 
 
-def apply_model(
+def apply_ffmpeg(
     video_input: AudioExtractionInput,
 ) -> AudioExtractionOutput:
     logger.info("Starting model application")
@@ -124,10 +124,10 @@ def apply_model(
     ffmpeg_cmd = ["ffmpeg", "-i", video_input.input_file_path]
     if cfg.AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO:
         ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
-    if cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ != "None":
+    if cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ != 0:
         ffmpeg_cmd = ffmpeg_cmd + [
             "-ar",
-            cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ,
+            str(cfg.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ),
         ]
     subprocess.call(ffmpeg_cmd + [destination])
     logger.info("Executed command:")
