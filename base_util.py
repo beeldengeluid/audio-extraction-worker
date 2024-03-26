@@ -100,13 +100,13 @@ def validate_config(config: CfgNode, validate_file_paths: bool = True) -> bool:
         # settings for this worker specifically
         assert check_setting(
             config.AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ, int, True
-        ), "WORKER_SETTINGS.OUTPUT_SAMPLERATE_HZ"
+        ), "AUDIO_EXTRACTION_SETTINGS.OUTPUT_SAMPLERATE_HZ"
         assert check_setting(
             config.AUDIO_EXTRACTION_SETTINGS.OUTPUT_FILE_EXTENSION, str
-        ), "WORKER_SETTINGS.OUTPUT_FILE_EXTENSION"
+        ), "AUDIO_EXTRACTION_SETTINGS.OUTPUT_FILE_EXTENSION"
         assert check_setting(
             config.AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO, bool
-        ), "WORKER_SETTINGS.CONVERT_TO_MONO"
+        ), "AUDIO_EXTRACTION_SETTINGS.CONVERT_TO_MONO"
 
         assert __check_dane_dependencies(config.DANE_DEPENDENCIES), "DANE_DEPENDENCIES"
 

@@ -47,8 +47,8 @@ class AudioExtractionWorker(base_worker):
             logger.info("Generator was None, creating it now")
             self.generator = {
                 "id": "dane-audio-extraction-worker",
-                "type": "Software",
-                "name": "UES",
+                "type": "dane-audio-extraction-worker",
+                "name": "Audio Extraction",
                 "homepage": "https://github.com/beeldengeluid/dane-audio-extraction-worker",
             }
 
