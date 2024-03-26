@@ -26,7 +26,7 @@ from dane.provenance import (
     generate_initial_provenance,
     stop_timer_and_persist_provenance_chain,
 )
-from apply_ffmpeg import apply_ffmpeg
+from ffmpeg_util import apply_ffmpeg
 
 
 logger = logging.getLogger(__name__)
