@@ -14,19 +14,21 @@ ELASTICSEARCH:
     SCHEME: http
     INDEX: dane-index-k8s
 FILE_SYSTEM:
-    BASE_MOUNT: /data # data when running locally
+    BASE_MOUNT: data # data when running locally
     INPUT_DIR: input-files
     OUTPUT_DIR: output-files
 INPUT:
-    TEST_INPUT_PATH: testsource__testcarrier/inputfile.mp4
-    S3_ENDPOINT_URL: https://s3-host
-    MODEL: s3://bucket/model
     DELETE_ON_COMPLETION: False
+    S3_ENDPOINT_URL: https://s3-host
+    S3_BUCKET: integration-test-input
+    S3_FOLDER_IN_BUCKET: assets  # folder within the bucket
+    S3_BUCKET_MODEL: integration-test-model
+    TEST_INPUT_PATH: testsource__testcarrier/inputfile.mp4
 OUTPUT:
     DELETE_ON_COMPLETION: False
     TRANSFER_ON_COMPLETION: True
     S3_ENDPOINT_URL: https://s3-host
-    S3_BUCKET: bucket-name  # bucket reserved for 1 type of output
+    S3_BUCKET: integration-test-output  # bucket reserved for 1 type of output
     S3_FOLDER_IN_BUCKET: folder  # folder within the bucket
 AUDIO_EXTRACTION_SETTINGS:
     OUTPUT_SAMPLERATE_HZ: 0 # change if you want a specific rate, otherwise set to 0 to use the samplerate of the video
