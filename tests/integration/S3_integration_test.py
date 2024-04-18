@@ -11,10 +11,11 @@ from dane.config import cfg
 from io_util import untar_input_file, S3_OUTPUT_TYPES
 
 
-source_id = "resource__carrier"
-fn_tar_in = f"prep__{source_id}.tar.gz"
+source_id = "carrier"
+basename_sourceid = "resource__" + source_id
+fn_tar_in = f"{basename_sourceid}.tar.gz"
 key_in = f"{cfg.INPUT.S3_FOLDER_IN_BUCKET}/{fn_tar_in}"
-tar_out = f"{source_id}/base_name__{source_id}.tar.gz"
+tar_out = f"{source_id}/out__{source_id}.tar.gz"
 key_out = f"{cfg.OUTPUT.S3_FOLDER_IN_BUCKET}/{tar_out}"
 
 
