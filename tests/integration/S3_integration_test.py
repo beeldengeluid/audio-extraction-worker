@@ -39,11 +39,15 @@ def aws(aws_credentials):
 
 @pytest.fixture
 def create_sample_input():
-    """Add sample input for test to input bucket.
+    """
+    Add sample input for test to input bucket.
     In this case, the sample input is downloaded from Openbeelden.
-    You can also add a file from the repository (e.g. from data/input-files/<example-input>)"""
+    You can also add a file from the repository (e.g. from data/input-files/<example-input>)
+    """
     fn = "inputfile.mp4"
-    urllib.request.urlretrieve("https://www.openbeelden.nl/files/06/28/628929.628917.MERAM_Copy__2.mp4", fn)
+    urllib.request.urlretrieve(
+        "https://www.openbeelden.nl/files/06/28/628929.628917.MERAM_Copy__2.mp4", fn
+    )
     with tarfile.open(fn_tar_in, "w:gz") as tar:
         tar.add(fn)
     yield
