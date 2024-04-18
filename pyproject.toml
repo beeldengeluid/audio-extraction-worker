@@ -67,5 +67,6 @@ module = [
   'mockito',
   'yaml',
   'yacs.*',
+  'boto3.*',
 ]
 ignore_missing_imports = true
