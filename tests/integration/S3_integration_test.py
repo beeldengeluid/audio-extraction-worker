@@ -91,9 +91,7 @@ def test_main_data_processor(aws, aws_credentials, create_and_fill_buckets, setu
     Relies on fixtures: aws, aws_credentials, create_and_fill_buckets, setup_fs"""
     if cfg.OUTPUT.TRANSFER_ON_COMPLETION:
         # run the main data processor
-        run(
-            input_file_path=f"s3://{cfg.INPUT.S3_BUCKET}/{key_in}"
-        )
+        run(input_file_path=f"s3://{cfg.INPUT.S3_BUCKET}/{key_in}")
 
         # Check if the output is present in S3
         client = boto3.client("s3")
