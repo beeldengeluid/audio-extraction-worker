@@ -299,7 +299,7 @@ def fetch_input_s3_uri(handler, doc: Document) -> str:
 
 
 # untars somefile.tar.gz into the same dir
-def untar_input_file(tar_file_path: str):
+def untar_input_file(tar_file_path: str) -> str:
     logger.info(f"Uncompressing {tar_file_path}")
     path = str(Path(tar_file_path).parent)
     with tarfile.open(tar_file_path) as tar:
