@@ -23,6 +23,8 @@ class AudioExtractionWorker(base_worker):
     def __init__(self, config):
         logger.info(config)
 
+        self.UNIT_TESTING = os.getenv("DW_AUDIO_EXTRACTION_UNIT_TESTING", False)
+
         if not validate_config(config, not self.UNIT_TESTING):
             logger.error("Invalid config, quitting")
             sys.exit()
