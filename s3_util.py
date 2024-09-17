@@ -133,7 +133,7 @@ class S3Store:
         return True
 
     def download_file(self, bucket: str, object_name: str, output_folder: str) -> bool:
-        logger.info(f"Downloading {bucket}:{object_name} into {output_folder}")
+        logger.info(f"Downloading {bucket}:{object_name} into {output_folder}")  # noqa
         if not os.path.exists(output_folder):
             logger.info("Output folder does not exist, creating it...")
             os.makedirs(output_folder)
