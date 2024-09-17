@@ -60,5 +60,5 @@ def transfer_asr_output(output_path: str, asset_id: str) -> bool:
         os.path.join(
             s3_folder_in_bucket, asset_id
         ),  # assets/<program ID>__<carrier ID>
-        output_path,
+        [output_path],
     )

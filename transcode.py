@@ -19,7 +19,9 @@ def ffmpeg_transcode(input_path, asset_id, extension) -> Optional[str]:
         logger.error(f"input with extension {extension} is not transcodable")
         return None
 
-    transcoded_file_path = os.path.join(data_base_dir, "output", f"{asset_id}.{ae_file_extension}")
+    transcoded_file_path = os.path.join(
+        data_base_dir, "output", f"{asset_id}.{ae_file_extension}"
+    )
 
     # go ahead and transcode the input file
     success = extract_audio(

@@ -2,7 +2,7 @@ import logging
 import ntpath
 import os
 import subprocess
-from typing import Tuple
+from typing import Tuple, List
 from config import data_base_dir
 
 
@@ -35,7 +35,7 @@ def extension_to_mime_type(extension: str) -> str:
 
 
 # used by transcode.py
-def run_shell_command(cmd: str) -> bool:
+def run_shell_command(cmd: List[str]) -> bool:
     logger.info("Executing command:")
     logger.info(cmd)
     try:

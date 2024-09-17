@@ -55,5 +55,5 @@ if s3_bucket or s3_endpoint_url or s3_folder_in_bucket:
 assert ae_samplerate_hz >= 0, "The AE_SAMPLERATE_HZ must be positive"
 assert ae_file_extension in [
     "wav",
-    "mp3"
-], "Please use one of: tiny|base|small|medium|large|large-v2|large-v3 for W_MODEL"
+    "mp3",
+], "Please use one of: [wav, mp3] for AE_FILE_EXTENSION"
