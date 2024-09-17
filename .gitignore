@@ -1,6 +1,11 @@
 /*.mp4
 /data/*
-!/data/README.md
+!/data/input
+!/data/output
+/data/input/*
+/data/output/*
+!/data/input/kaldi-nl-test.mp4
+!/data/output/kaldi-nl-test.wav
 __pycache__
 .pytest_cache
 .mypy_cache

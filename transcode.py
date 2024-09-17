@@ -23,6 +23,13 @@ def ffmpeg_transcode(input_path, asset_id, extension) -> Optional[str]:
         data_base_dir, "output", f"{asset_id}.{ae_file_extension}"
     )
 
+    # do not transcode if the output already exists
+    if os.path.exists(transcoded_file_path):
+        logger.info(
+            f"{transcoded_file_path} already exists, exiting"
+        )
+        return transcoded_file_path
+
     # go ahead and transcode the input file
     success = extract_audio(
         input_path,
