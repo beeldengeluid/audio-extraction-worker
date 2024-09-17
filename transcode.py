@@ -42,10 +42,17 @@ def ffmpeg_transcode(input_path, asset_id, extension) -> Optional[str]:
 def extract_audio(input_path: str, output_path: str) -> bool:
     logger.debug(f"Extracting audio from file: {input_path}")
     ffmpeg_cmd = ["ffmpeg", "-i", input_path]
+
     if ae_convert_to_mono:
         ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
     if ae_samplerate_hz != 0:
         ffmpeg_cmd = ffmpeg_cmd + ["-ar", str(ae_samplerate_hz)]
+
+    output_dir, _ = os.path.split(output_path)
+    if not os.path.exists(output_dir):
+        logger.info(f"{output_dir} does not exist, creating it now")
+        os.makedirs(output_dir)
+
     return base_util.run_shell_command(ffmpeg_cmd + [output_path])
 
 

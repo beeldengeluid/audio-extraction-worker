@@ -35,7 +35,8 @@ def extension_to_mime_type(extension: str) -> str:
 
 
 # used by transcode.py
-def run_shell_command(cmd: List[str]) -> bool:
+def run_shell_command(command: List[str]) -> bool:
+    cmd = " ".join(command)
     logger.info("Executing command:")
     logger.info(cmd)
     try:
