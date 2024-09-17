@@ -1,14 +1,15 @@
 [tool.poetry]
-name = "dane-audio-extraction-worker"
+name = "audio-extraction-worker"
 version = "0.1.0"
-description = "DANE worker that extracts audio (.wav) from video"
+description = "Worker that extracts audio (.wav) from video"
 authors = ["Dragos Alexandru Balan <d.a.balan@utwente.nl>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-dane = "^0.4.2"
+validators = "^0.33.0"
+boto3 = "^1.35.10"
 
 [tool.poetry.group.dev.dependencies]
 moto = "^5.0.3"
@@ -32,6 +33,7 @@ testpaths = [
 ]
 addopts = [
   "--cov",
+  "--ignore=tests/ignored",
 ]
 
 [tool.coverage.run]
@@ -41,7 +43,7 @@ omit = [
 
 [tool.black]
 line-length = 88
-target_version = ['py310']
+target_version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 
@@ -58,15 +60,12 @@ exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 exclude = "misc"
 
 [[tool.mypy.overrides]]
 module = [
-  'dane.*',
-  'mockito',
   'yaml',
-  'yacs.*',
   'boto3.*',
 ]
 ignore_missing_imports = true
