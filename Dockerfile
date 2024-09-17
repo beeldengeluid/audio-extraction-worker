@@ -1,4 +1,17 @@
-FROM docker.io/python:3.10
+FROM docker.io/python:3.11 as req
+
+RUN python3 -m pip install pipx && \
+  python3 -m pipx ensurepath
+
+RUN pipx install poetry==1.7.1 && \
+  pipx inject poetry poetry-plugin-export && \
+  pipx run poetry config warnings.export false
+
+COPY ./poetry.lock ./poetry.lock
+COPY ./pyproject.toml ./pyproject.toml
+RUN pipx run poetry export --format requirements.txt --output requirements.txt
+
+FROM docker.io/python:3.11
 
 # install FFmpeg
 RUN apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recommends ffmpeg
@@ -11,21 +24,13 @@ RUN mkdir /root/.DANE /mnt/dane-fs /src /data
 
 WORKDIR /src
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
-COPY pyproject.toml poetry.lock ./
-
-RUN pip install poetry==1.8.2
-
-RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+COPY --from=req ./requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # copy the rest into the source dir
 COPY ./ /src
 
 # Write provenance info about software versions to file
-RUN echo "dane-audio-extraction-worker;https://github.com/beeldengeluid/dane-audio-extraction-worker/commit/$(git rev-parse HEAD)" >> /software_provenance.txt
+RUN echo "audio-extraction-worker;https://github.com/beeldengeluid/audio-extraction-worker/commit/$(git rev-parse HEAD)" >> /software_provenance.txt
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
