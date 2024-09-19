@@ -36,7 +36,7 @@ apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recom
 
 ## Expected run
 
-The expected run of this worker should download the input video file if it isn't downloaded already in `/data/input/`, run ffmpeg with the arguments specified in `.env.override`, and output an audio file in `data/output/`. You can also configure the transfer of the output to an S3 bucket.
+The expected run of this worker should download the input video file if it isn't downloaded already in `/data/input/`, run ffmpeg with the arguments specified in `.env.override`, and output an audio file in `/data/output/`. You can also configure the transfer of the output to an S3 bucket.
 
 If you want to test the input file download, we recommend deleting the `/data/input/` folder (NOT the `/data` folder).
 
