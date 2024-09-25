@@ -3,7 +3,7 @@ FROM docker.io/python:3.11 as req
 RUN python3 -m pip install pipx && \
   python3 -m pipx ensurepath
 
-RUN pipx install poetry==1.7.1 && \
+RUN pipx install poetry==1.8.2 && \
   pipx inject poetry poetry-plugin-export && \
   pipx run poetry config warnings.export false
 

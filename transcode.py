@@ -3,7 +3,7 @@ import os
 from typing import Optional
 
 import base_util
-from base_util import data_base_dir
+from config import data_base_dir
 from config import ae_file_extension, ae_convert_to_mono, ae_samplerate_hz
 
 logger = logging.getLogger(__name__)

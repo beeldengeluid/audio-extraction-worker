@@ -29,7 +29,7 @@ All commands should be run within WSL if on Windows or within your terminal if o
 ```
 apt-get -y update && apt-get -y upgrade && apt-get install -y --no-install-recommends ffmpeg
 ```
-4. Execute the following command:
+4. Navigate inside the `scripts` folder then execute the following command:
 ```
 ./run.sh
 ```

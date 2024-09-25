@@ -1,9 +1,7 @@
 import logging
-import ntpath
 import os
 import subprocess
 from typing import Tuple, List
-from config import data_base_dir
 
 
 LOG_FORMAT = "%(asctime)s|%(levelname)s|%(process)d|%(module)s|%(funcName)s|%(lineno)d|%(message)s"
@@ -12,15 +10,10 @@ logger = logging.getLogger(__name__)
 
 # the file name without extension is used as asset ID
 def get_asset_info(input_file: str) -> Tuple[str, str]:
-    file_name = ntpath.basename(input_file)
+    file_name = os.path.basename(input_file)
     asset_id, extension = os.path.splitext(file_name)
     logger.info(f"working with this asset ID {asset_id}")
     return asset_id, extension
-
-
-# i.e. {output_base_dir}/output/{input_filename_without_extension}
-def asr_output_dir(input_path):
-    return os.path.join(data_base_dir, "output", get_asset_info(input_path)[0])
 
 
 def extension_to_mime_type(extension: str) -> str:

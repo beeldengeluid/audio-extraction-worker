@@ -2,7 +2,7 @@ import logging
 import os
 from config import s3_endpoint_url, s3_bucket, s3_folder_in_bucket
 from download import download_uri
-from base_util import get_asset_info, asr_output_dir
+from base_util import get_asset_info
 from s3_util import S3Store
 from transcode import ffmpeg_transcode
 
@@ -20,7 +20,6 @@ def run(input_uri: str, output_uri: str) -> bool:
 
     input_path = result.file_path
     asset_id, extension = get_asset_info(input_path)
-    output_path = asr_output_dir(input_path)
 
     # 2. do the actual transcoding
     output_path = ffmpeg_transcode(input_path, asset_id, extension)
@@ -30,14 +29,14 @@ def run(input_uri: str, output_uri: str) -> bool:
 
     # 3. transfer output
     if output_uri:
-        transfer_asr_output(output_path, asset_id)
+        transfer_output(output_path, asset_id)
     else:
         logger.info("No output_uri specified, so all is done")
     return True
 
 
 # if (S3) output_uri is supplied transfers data to S3 location
-def transfer_asr_output(output_path: str, asset_id: str) -> bool:
+def transfer_output(output_path: str, asset_id: str) -> bool:
     logger.info(f"Transferring {output_path} to S3 (asset={asset_id})")
     if any(
         [
