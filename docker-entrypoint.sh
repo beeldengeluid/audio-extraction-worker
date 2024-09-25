@@ -1,7 +1,7 @@
 #!/bin/sh
 
-echo "Starting DANE audio extraction worker"
+echo "Starting audio extraction worker"
 
-poetry run python worker.py "$@"
+python main.py "$@"
 
 echo "The worker has finished"

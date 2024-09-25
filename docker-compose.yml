@@ -1,0 +1,13 @@
+services:
+  audio-extraction-worker:
+    image: audio-extraction-worker:latest
+    volumes:
+      - ./data:/data
+    container_name: audio-extraction-worker
+    # args: ["--output-uri"]
+    env_file:
+      - .env.override
+    logging:
+      options:
+        max-size: 20m
+    restart: no
