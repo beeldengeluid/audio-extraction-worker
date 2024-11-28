@@ -34,7 +34,13 @@ class Task(BaseModel):
     error_msg: str | None = None
 
 
-all_tasks = []
+all_tasks = [
+    {
+        "input_uri": "dummy",
+        "output_uri": "dummy",
+        "id": "dummy",
+    }
+]
 
 current_task: Optional[Task] = None
 

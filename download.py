@@ -3,7 +3,6 @@ import logging
 import os
 import requests
 import time
-from typing import Optional
 from urllib.parse import urlparse
 from s3_util import S3Store, parse_s3_uri, validate_s3_uri
 from config import data_base_dir, s3_endpoint_url
@@ -28,7 +27,7 @@ class DownloadResult:
     content_length: int = -1  # download_data.get("content_length", -1),
 
 
-def download_uri(uri: str) -> Optional[DownloadResult]:
+def download_uri(uri: str) -> DownloadResult:
     logger.info(f"Trying to download {uri}")
     if validate_s3_uri(uri):
         logger.info("URI seems to be an s3 uri")
@@ -41,7 +40,7 @@ def download_uri(uri: str) -> Optional[DownloadResult]:
     )
 
 
-def http_download(url: str) -> Optional[DownloadResult]:
+def http_download(url: str) -> DownloadResult:
     logger.info(f"Checking if {url} was already downloaded")
     start_time = time.time()
 
@@ -89,7 +88,7 @@ def http_download(url: str) -> Optional[DownloadResult]:
             file.close()
         download_time = (time.time() - start_time) * 1000  # time in ms
     else:
-        provenance["steps"].append("Download skipped: input already exists")
+        provenance["steps"] = ["Download skipped: input already exists"]
 
     return DownloadResult(
         input_file, mime_type, provenance, download_time  # TODO add content_length
@@ -149,7 +148,7 @@ def s3_download(url: str) -> DownloadResult:
 
         download_time = (time.time() - start_time) * 1000  # time in ms
     else:
-        provenance["steps"].append("Download skipped: input already exists")
+        provenance["steps"] = ["Download skipped: input already exists"]
 
     return DownloadResult(
         input_file, mime_type, provenance, download_time  # TODO add content_length

@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from typing import Optional
 from config import (
     data_base_dir,
     s3_endpoint_url,
@@ -21,7 +22,7 @@ from transcode import ffmpeg_audio_extraction
 logger = logging.getLogger(__name__)
 
 
-def run(input_uri: str, output_uri: str) -> bool:
+def run(input_uri: str, output_uri: str) -> Optional[str]:
     logger.info(f"Processing {input_uri} (save to --> {output_uri})")
     start_time = time.time()
     prov_steps = []  # track provenance
@@ -81,7 +82,7 @@ def run(input_uri: str, output_uri: str) -> bool:
             return "Upload failure: Could not upload output to S3"
     else:
         logger.info("No output_uri specified, so all is done")
-    return True
+    return None
 
 
 # if (S3) output_uri is supplied transfers data to S3 location
