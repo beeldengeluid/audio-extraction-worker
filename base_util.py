@@ -1,10 +1,13 @@
 import logging
 import os
 import subprocess
+import json
 from typing import Tuple, List
+from urllib.parse import urlparse
 
 
 LOG_FORMAT = "%(asctime)s|%(levelname)s|%(process)d|%(module)s|%(funcName)s|%(lineno)d|%(message)s"
+PROVENANCE_JSON_FILE = "ae_provenance.json"
 logger = logging.getLogger(__name__)
 
 
@@ -51,3 +54,49 @@ def run_shell_command(command: List[str]) -> bool:
     except Exception:
         logger.exception("Exception")
         return False
+
+
+def validate_http_uri(http_uri: str) -> bool:
+    o = urlparse(http_uri, allow_fragments=False)
+    if o.scheme != "http" and o.scheme != "https":
+        logger.error(f"Invalid protocol in {http_uri}")
+        return False
+    if o.path == "":
+        logger.error(f"No object_name specified in {http_uri}")
+        return False
+    return True
+
+
+def is_transcodable(extension):
+    return extension in [".mov", ".mp4"]
+
+
+def remove_all_input_output(path: str) -> bool:
+    try:
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                os.remove(os.path.join(path, file))
+            os.rmdir(path)
+            logger.info("All data has been deleted")
+        else:
+            logger.warning(f"{path} not found")
+            return False
+        return True
+    except OSError:
+        return False
+
+
+def save_provenance(provenance: dict, output_dir: str) -> bool:
+    logger.info(f"Saving provenance to: {output_dir}")
+    try:
+        # write ae_provenance.json
+        with open(
+            os.path.join(output_dir, PROVENANCE_JSON_FILE), "w+", encoding="utf-8"
+        ) as f:
+            logger.info(provenance)
+            json.dump(provenance, f, ensure_ascii=False, indent=4)
+    except EnvironmentError as e:  # OSError or IOError...
+        logger.exception(os.strerror(e.errno))
+        return False
+
+    return True
