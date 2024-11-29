@@ -45,6 +45,7 @@ if __name__ == "__main__":
         "--output", action="store", dest="output_uri", default=output_uri
     )
     parser.add_argument("--log", action="store", dest="loglevel", default="INFO")
+    parser.add_argument("--port", action="store", dest="port", default="5333")
     args = parser.parse_args()
 
     # initialises the root logger
