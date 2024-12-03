@@ -2,6 +2,6 @@
 
 echo "Starting audio extraction worker"
 
-python main.py --service=y "$@"
+python main.py "$@"
 
 echo "The worker has finished"
