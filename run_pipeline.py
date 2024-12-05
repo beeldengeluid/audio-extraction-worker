@@ -82,6 +82,8 @@ def run(input_uri: str, output_uri: str) -> Optional[str]:
             return "Upload failure: Could not upload output to S3"
     else:
         logger.info("No output_uri specified, so all is done")
+
+    remove_all_input_output(output_dir)
     return None
 
 
