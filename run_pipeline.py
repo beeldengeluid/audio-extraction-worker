@@ -3,12 +3,12 @@ import time
 from config import (
     ae_file_extension,
 )
-from s3_util import transfer_output
 from download import download_uri
 from base_util import (
     get_asset_info,
     remove_all_input_output,
     save_provenance,
+    transfer_output,
     Provenance,
 )
 from transcode import ffmpeg_audio_extraction

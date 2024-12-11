@@ -106,7 +106,7 @@ async def create_task(
     task.status = Status.CREATED
     current_task = task
     task_dict = task.dict()
-    all_tasks.append(task_dict)
+    all_tasks["task_id"] = task
     return {"data": task_dict, "msg": "Successfully added task", "task_id": task.id}
 
 
@@ -118,7 +118,7 @@ async def get_task(task_id: str, response: Response):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
         )
-    response.status_code = StatusToHTTP[task["status"]]
+    response.status_code = StatusToHTTP[task.status]
     return {"data": task}
 
 

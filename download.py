@@ -11,7 +11,7 @@ from base_util import (
     extension_to_mime_type,
     validate_http_uri,
     Provenance,
-    remove_all_input_output
+    remove_all_input_output,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,9 @@ def http_download(url: str) -> DownloadResult:
     with open(input_file, "wb") as file:
         response = requests.get(url)
         if response.status_code != 200:
-            raise Exception(f"Could not download {url}. Response code: {response.status_code}")
+            raise Exception(
+                f"Could not download {url}. Response code: {response.status_code}"
+            )
         file.write(response.content)
         file.close()
     provenance.processing_time_ms = (time.time() - start_time) * 1000

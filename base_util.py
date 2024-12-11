@@ -5,6 +5,8 @@ import json
 from typing import Tuple, List
 from dataclasses import dataclass
 from urllib.parse import urlparse
+from config import s3_endpoint_url, ae_file_extension
+from s3_util import parse_s3_uri, S3Store
 
 
 LOG_FORMAT = "%(asctime)s|%(levelname)s|%(process)d|%(module)s|%(funcName)s|%(lineno)d|%(message)s"
@@ -18,7 +20,7 @@ class Provenance:
     start_time_unix: float
     input_data: str
     processing_time_ms: float = -1
-    parameters: list = []
+    parameters: dict = {}
     software_version: str = ""
     output_data: str = ""
     steps: list = []
@@ -44,7 +46,7 @@ def extension_to_mime_type(extension: str) -> str:
 
 
 # used by transcode.py
-def run_shell_command(command: List[str], ret_output=False) -> bool | str:
+def run_shell_command(command: List[str], ret_output=False) -> bool:
     cmd = " ".join(command)
     logger.info("Executing command:")
     logger.info(cmd)
@@ -60,9 +62,28 @@ def run_shell_command(command: List[str], ret_output=False) -> bool | str:
     logger.info(stdout)
     logger.error(stderr)
     logger.info(f"Process is done: return code {process.returncode}")
-    if ret_output and process.returncode == 0:
-        return stdout
     return process.returncode == 0
+
+
+def run_shell_command_with_output(command: List[str]) -> str:
+    cmd = " ".join(command)
+    logger.info("Executing command:")
+    logger.info(cmd)
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,  # needed to support file glob
+    )
+
+    stdout, stderr = process.communicate()
+    logger.info(stdout)
+    logger.error(stderr)
+    logger.info(f"Process is done: return code {process.returncode}")
+    if process.returncode == 0:
+        return stdout.decode()
+    return stderr.decode()
 
 
 def validate_http_uri(http_uri: str) -> bool:
@@ -96,11 +117,36 @@ def remove_all_input_output(path: str) -> bool:
         return False
 
 
-def save_provenance(provenance: dict, output_dir: str, filename: str = "ae_provenance.json"):
+def save_provenance(
+    provenance: Provenance, output_dir: str, filename: str = "ae_provenance.json"
+):
     logger.info(f"Saving provenance to: {output_dir}")
     # write ae_provenance.json
-    with open(
-        os.path.join(output_dir, filename), "w+", encoding="utf-8"
-    ) as f:
-        logger.info(provenance)
+    with open(os.path.join(output_dir, filename), "w+", encoding="utf-8") as f:
         json.dump(provenance, f, ensure_ascii=False, indent=4)
+        logger.info("Provenance successfully saved!")
+
+
+# if (S3) output_uri is supplied transfers data to S3 location
+def transfer_output(
+    output_path: str,
+    output_uri: str,
+    asset_id: str,
+    prov_filename: str = "ae_provenance.json",
+) -> bool:
+    logger.info(f"Transferring {output_path} to S3 (destination={output_uri})")
+    if not s3_endpoint_url:
+        logger.warning("Transfer to S3 configured without an S3_ENDPOINT_URL!")
+        return False
+
+    s3_bucket, s3_folder_in_bucket = parse_s3_uri(output_uri)
+
+    s3 = S3Store(s3_endpoint_url)
+    return s3.transfer_to_s3(
+        s3_bucket,
+        s3_folder_in_bucket,
+        [
+            os.path.join(output_path, f"{asset_id}.{ae_file_extension}"),
+            os.path.join(output_path, prov_filename),
+        ],
+    )

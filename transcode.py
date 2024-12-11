@@ -2,7 +2,12 @@ import logging
 import os
 import time
 
-from base_util import Provenance, run_shell_command, remove_all_input_output
+from base_util import (
+    Provenance,
+    run_shell_command,
+    remove_all_input_output,
+    run_shell_command_with_output,
+)
 from config import data_base_dir
 from config import ae_file_extension
 
@@ -17,7 +22,7 @@ def ffmpeg_audio_extraction(input_path, asset_id, extension) -> Provenance:
     start_time = time.time()
 
     # Get FFmpeg version used (to add to prov)
-    ffmpeg_ver = run_shell_command(["ffmpeg", "--version"], True)
+    ffmpeg_ver = run_shell_command_with_output(["ffmpeg", "--version"])
     if not ffmpeg_ver:
         raise Exception("Running ffmpeg to extract audio failed")
 
