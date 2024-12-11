@@ -10,88 +10,69 @@ from base_util import (
     get_asset_info,
     extension_to_mime_type,
     validate_http_uri,
+    Provenance,
+    remove_all_input_output
 )
 
 logger = logging.getLogger(__name__)
 
-input_file_dir = os.path.join(data_base_dir, "input/")
-
 
 @dataclass
 class DownloadResult:
-    file_path: str  # target_file_path,  # TODO harmonize with dane-download-worker
+    file_path: str  # target_file_path,
+    output_path: str
     mime_type: str
-    provenance: dict
-    download_time: float = -1  # time (ms) taken to receive data after request
-    error: str = ""
+    provenance: Provenance
     content_length: int = -1  # download_data.get("content_length", -1),
 
 
 def download_uri(uri: str) -> DownloadResult:
     logger.info(f"Trying to download {uri}")
     if validate_s3_uri(uri):
-        logger.info("URI seems to be an s3 uri")
+        logger.info("URI seems to be an S3 URI")
         return s3_download(uri)
     if validate_http_uri(uri):
         logger.info("URI seems to be an HTTP URI")
         return http_download(uri)
-    return DownloadResult(
-        uri, "", dict(), -1, "Input failure: URI is neither S3, nor HTTP"
-    )
+    raise Exception("Input failure: URI is neither S3, nor HTTP")
 
 
 def http_download(url: str) -> DownloadResult:
     logger.info(f"Checking if {url} was already downloaded")
     start_time = time.time()
 
-    provenance = {
-        "activity_name": "Input download",
-        "activity_description": "Downloads the input file from INPUT_URI",
-        "processing_time_ms": -1,
-        "start_time_unix": start_time,
-        "parameters": [],
-        "software_version": "",
-        "input_data": url,
-        "output_data": "",
-        "steps": [],
-    }
+    provenance = Provenance(
+        activity_name="Download Input",
+        activity_description="Downloads the input video file to be extracted",
+        start_time_unix=start_time,
+        input_data=url,
+    )
 
     fn = os.path.basename(urlparse(url).path)
     asset_id, extension = get_asset_info(fn)
 
     input_file_dir = os.path.join(data_base_dir, asset_id)
-    input_file = os.path.join(data_base_dir, asset_id, fn)
+    input_file = os.path.join(input_file_dir, fn)
     mime_type = extension_to_mime_type(extension)
 
-    download_time = -1.0
+    if os.path.exists(input_file):
+        logger.info(f"File {input_file} already exists, overwriting...")
+        remove_all_input_output(input_file_dir)
 
-    if not os.path.exists(input_file):
-        logger.info(f"File {input_file} not downloaded yet")
-        # Create /data/<asset_id>/ folder if not exists
-        if not os.path.exists(input_file_dir):
-            logger.info(f"{input_file_dir} does not exist, creating it now")
-            os.makedirs(input_file_dir)
-        with open(input_file, "wb") as file:
-            response = requests.get(url)
-            if response.status_code >= 400:
-                logger.error(
-                    f"Could not download url. Response code: {response.status_code}"
-                )
-                return DownloadResult(
-                    input_file,
-                    mime_type,
-                    dict(),
-                    download_time,
-                    f"Input failure: Could not download url. Response code: {response.status_code}",
-                )
-            file.write(response.content)
-            file.close()
-        download_time = (time.time() - start_time) * 1000  # time in ms
-    else:
-        provenance["steps"] = ["Download skipped: input already exists"]
+    # Create /data/<asset_id>/ folder if not exists
+    if not os.path.exists(input_file_dir):
+        logger.info(f"{input_file_dir} does not exist, creating it now")
+        os.makedirs(input_file_dir)
+    with open(input_file, "wb") as file:
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise Exception(f"Could not download {url}. Response code: {response.status_code}")
+        file.write(response.content)
+        file.close()
+    provenance.processing_time_ms = (time.time() - start_time) * 1000
 
     return DownloadResult(
-        input_file, mime_type, provenance, download_time  # TODO add content_length
+        input_file, input_file_dir, mime_type, provenance  # TODO add content_length
     )
 
 
@@ -100,17 +81,12 @@ def s3_download(url: str) -> DownloadResult:
     logger.info(f"Checking if {url} was already downloaded")
     start_time = time.time()
 
-    provenance = {
-        "activity_name": "Input download",
-        "activity_description": "Downloads the input file from INPUT_URI",
-        "processing_time_ms": -1,
-        "start_time_unix": start_time,
-        "parameters": [],
-        "software_version": "",
-        "input_data": url,
-        "output_data": "",
-        "steps": [],
-    }
+    provenance = Provenance(
+        activity_name="Download Input",
+        activity_description="Downloads the input video file to be extracted",
+        start_time_unix=start_time,
+        input_data=url,
+    )
 
     # parse S3 URI
     bucket, object_name = parse_s3_uri(url)
@@ -121,35 +97,24 @@ def s3_download(url: str) -> DownloadResult:
         input_file_dir,
         os.path.basename(object_name),  # i.e. visxp_prep__<source_id>.tar.gz
     )
-
-    _, extension = get_asset_info(input_file)
     mime_type = extension_to_mime_type(extension)
 
-    start_time = time.time()
-    download_time = -1.0
+    if os.path.exists(input_file):
+        logger.info(f"File {input_file} already exists, attempting to delete")
+        remove_all_input_output(input_file_dir)
 
-    if not os.path.exists(input_file):
-        s3 = S3Store(s3_endpoint_url)
-        # Create /data/<asset_id>/ folder if not exists
-        if not os.path.exists(input_file_dir):
-            logger.info(f"{input_file_dir} does not exist, creating it now")
-            os.makedirs(input_file_dir)
-        success = s3.download_file(bucket, object_name, input_file_dir)
+    s3 = S3Store(s3_endpoint_url)
+    # Create /data/<asset_id>/ folder if not exists
+    if not os.path.exists(input_file_dir):
+        logger.info(f"{input_file_dir} does not exist, creating it now")
+        os.makedirs(input_file_dir)
+    success = s3.download_file(bucket, object_name, input_file_dir)
 
-        if not success:
-            logger.error("Failed to download input data from S3")
-            return DownloadResult(
-                input_file,
-                mime_type,
-                dict(),
-                download_time,
-                "Input failure: Could not download S3 URI",
-            )
+    if not success:
+        raise Exception(f"Could not download {url} from S3")
 
-        download_time = (time.time() - start_time) * 1000  # time in ms
-    else:
-        provenance["steps"] = ["Download skipped: input already exists"]
+    provenance.processing_time_ms = (time.time() - start_time) * 1000  # time in ms
 
     return DownloadResult(
-        input_file, mime_type, provenance, download_time  # TODO add content_length
+        input_file, input_file_dir, mime_type, provenance  # TODO add content_length
     )

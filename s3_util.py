@@ -5,6 +5,7 @@ from pathlib import Path
 import tarfile
 from typing import List, Tuple, Optional
 from urllib.parse import urlparse
+from config import s3_endpoint_url, ae_file_extension
 
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,26 @@ def download_s3_uri(s3_uri: str, output_folder: str) -> bool:
     s3_store = S3Store()
     bucket, object_name = parse_s3_uri(s3_uri)
     return s3_store.download_file(bucket, object_name, output_folder)
+
+
+# if (S3) output_uri is supplied transfers data to S3 location
+def transfer_output(output_path: str, output_uri: str, asset_id: str, prov_filename: str = "ae_provenance.json") -> bool:
+    logger.info(f"Transferring {output_path} to S3 (destination={output_uri})")
+    if not s3_endpoint_url:
+        logger.warning("Transfer to S3 configured without an S3_ENDPOINT_URL!")
+        return False
+
+    s3_bucket, s3_folder_in_bucket = parse_s3_uri(output_uri)
+
+    s3 = S3Store(s3_endpoint_url)
+    return s3.transfer_to_s3(
+        s3_bucket,
+        s3_folder_in_bucket,
+        [
+            os.path.join(output_path, f"{asset_id}.{ae_file_extension}"),
+            os.path.join(output_path, prov_filename),
+        ],
+    )
 
 
 class S3Store:

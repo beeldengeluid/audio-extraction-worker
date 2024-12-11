@@ -34,34 +34,16 @@ class Task(BaseModel):
     error_msg: str | None = None
 
 
-all_tasks = [
-    {
-        "input_uri": "dummy",
-        "output_uri": "dummy",
-        "id": "dummy",
-    }
-]
+all_tasks: dict[str, Task] = {}
 
 current_task: Optional[Task] = None
 
 
-def get_task_by_id(task_id: str) -> Optional[dict]:
-    tasks_with_id = list(filter(lambda t: t.get("id", "") == task_id, all_tasks))
-    return tasks_with_id[0] if tasks_with_id else None
-
-
-def get_task_index(task_id: str) -> int:
-    for index, task in enumerate(all_tasks):
-        if task.get("id", "") == task_id:
-            return index
-    return -1
-
-
 def delete_task(task_id) -> bool:
-    task_index = get_task_index(task_id)
-    if task_index == -1:
+    try:
+        del all_tasks[task_id]
+    except KeyError:
         return False
-    del all_tasks[task_index]
     return True
 
 
@@ -69,10 +51,10 @@ def update_task(task: Task) -> bool:
     if not task or not task.id:
         logger.warning("Tried to update task without ID")
         return False
-    task_index = get_task_index(task.id)
-    if task_index == -1:
+    try:
+        all_tasks[task.id] = task
+    except KeyError:
         return False
-    all_tasks[task_index] = task.dict()
     return True
 
 
@@ -82,14 +64,16 @@ def try_extraction(task: Task):
     try:
         task.status = Status.PROCESSING
         update_task(task)
-        error_msg = run(task.input_uri, task.output_uri)
-        task.status = Status.ERROR if error_msg else Status.DONE
-        task.error_msg = error_msg
-    except Exception:
-        logger.exception("Failed to run audio extraction")
+        success = run(task.input_uri, task.output_uri)
+        if success:
+            task.status = Status.DONE
+            logger.info(f"Successfully extracted audio for task {task.id}")
+    except Exception as e:
+        logger.error("Failed to run audio extraction")
+        logger.exception(e)
         task.status = Status.ERROR
     update_task(task)
-    logger.info(f"Done extracting audio for task {task.id}")
+    logger.info(f"Finished with task {task.id}")
 
 
 @api.get("/tasks")
@@ -128,8 +112,9 @@ async def create_task(
 
 @api.get("/tasks/{task_id}")
 async def get_task(task_id: str, response: Response):
-    task = get_task_by_id(task_id)
-    if not task:
+    try:
+        task = all_tasks[task_id]
+    except KeyError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
         )
