@@ -3,9 +3,9 @@ import os
 import subprocess
 import json
 from typing import Tuple, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field, asdict
 from urllib.parse import urlparse
-from config import s3_endpoint_url, ae_file_extension
+from config import s3_endpoint_url, ae_file_extension, prov_filename
 from s3_util import parse_s3_uri, S3Store
 
 
@@ -20,10 +20,10 @@ class Provenance:
     start_time_unix: float
     input_data: str
     processing_time_ms: float = -1
-    parameters: dict = {}
+    parameters: dict = field(default_factory=dict)
     software_version: str = ""
     output_data: str = ""
-    steps: list = []
+    steps: list = field(default_factory=list)
 
 
 # the file name without extension is used as asset ID
@@ -123,7 +123,7 @@ def save_provenance(
     logger.info(f"Saving provenance to: {output_dir}")
     # write ae_provenance.json
     with open(os.path.join(output_dir, filename), "w+", encoding="utf-8") as f:
-        json.dump(provenance, f, ensure_ascii=False, indent=4)
+        json.dump(asdict(provenance), f, ensure_ascii=False, indent=4)
         logger.info("Provenance successfully saved!")
 
 
@@ -132,7 +132,6 @@ def transfer_output(
     output_path: str,
     output_uri: str,
     asset_id: str,
-    prov_filename: str = "ae_provenance.json",
 ) -> bool:
     logger.info(f"Transferring {output_path} to S3 (destination={output_uri})")
     if not s3_endpoint_url:

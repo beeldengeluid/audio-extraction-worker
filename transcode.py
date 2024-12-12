@@ -8,30 +8,37 @@ from base_util import (
     remove_all_input_output,
     run_shell_command_with_output,
 )
-from config import data_base_dir
 from config import ae_file_extension
 
 logger = logging.getLogger(__name__)
 
 
-def ffmpeg_audio_extraction(input_path, asset_id, extension) -> Provenance:
+def ffmpeg_audio_extraction(
+    input_file: str,
+    asset_id: str,
+    extension: str,
+    output_path: str,
+) -> dict:
     logger.info(
-        f"Running audio extraction for input_path: {input_path} asset_id: ({asset_id}) extension: ({extension})"
+        f"Running audio extraction for input_path: {input_file} asset_id: ({asset_id}) extension: ({extension})"
     )
 
     start_time = time.time()
 
-    # Get FFmpeg version used (to add to prov)
-    ffmpeg_ver = run_shell_command_with_output(["ffmpeg", "--version"])
-    if not ffmpeg_ver:
+    # Get output of "ffmpeg -version"
+    ffmpeg_ver_cmd = run_shell_command_with_output(["ffmpeg", "-version"])
+    if not ffmpeg_ver_cmd:
         raise Exception("Running ffmpeg to extract audio failed")
+
+    # Add only the ffmpeg version number info to prov
+    ffmpeg_ver = " ".join(ffmpeg_ver_cmd.split()[:3])
 
     provenance = Provenance(
         activity_name="Audio extraction",
         activity_description="Checks if audio can be extracted from the input, then extracts it if so",
         start_time_unix=start_time,
         software_version=ffmpeg_ver,
-        input_data=input_path,
+        input_data=input_file,
     )
 
     # if the input format is not supported, fail
@@ -40,31 +47,29 @@ def ffmpeg_audio_extraction(input_path, asset_id, extension) -> Provenance:
             f"Audio extraction failure: Input with extension {extension} is not transcodable"
         )
 
-    output_path = os.path.join(
-        data_base_dir, asset_id, f"{asset_id}.{ae_file_extension}"
-    )
+    output_file = os.path.join(output_path, f"{asset_id}.{ae_file_extension}")
 
     # delete output if it exists
-    if os.path.exists(output_path):
-        logger.info(f"File {output_path} already exists, overwriting...")
-        remove_all_input_output(output_path)
+    if os.path.exists(output_file):
+        logger.info(f"File {output_file} already exists, overwriting...")
+        remove_all_input_output(output_file)
 
     # go ahead and transcode the input file
     success = extract_audio(
-        input_path,
-        output_path,
+        input_file,
+        output_file,
     )
     if not success:
         raise Exception("Running ffmpeg to extract audio failed")
 
     logger.info(
-        f"Audio extraction of {input_path} successful, returning: {output_path}"
+        f"Audio extraction of {input_file} successful, returning: {output_file}"
     )
 
     provenance.processing_time_ms = (time.time() - start_time) * 1000
-    provenance.output_data = output_path
+    provenance.output_data = output_file
     provenance.steps.append("Audio extraction successful")
-    return provenance
+    return {"prov": provenance, "output_fn": f"{asset_id}.{ae_file_extension}"}
 
 
 def extract_audio(input_path: str, output_path: str) -> bool:

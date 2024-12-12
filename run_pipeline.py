@@ -1,8 +1,7 @@
 import logging
 import time
-from config import (
-    ae_file_extension,
-)
+import os
+from urllib.parse import urlparse
 from download import download_uri
 from base_util import (
     get_asset_info,
@@ -12,28 +11,33 @@ from base_util import (
     Provenance,
 )
 from transcode import ffmpeg_audio_extraction
+from config import data_base_dir, prov_filename, ae_file_extension
 
 logger = logging.getLogger(__name__)
 
 
-def run(input_uri: str, output_uri: str = "") -> bool:
+def run(input_uri: str, output_uri: str = "") -> dict:
     logger.info(f"Processing {input_uri} (save to --> {output_uri})")
     start_time = time.time()
     prov_steps = []  # track provenance
 
     try:
-        # 1. download input
-        dl_result = download_uri(input_uri)
+        # 1. get all needed info about input
+        fn = os.path.basename(urlparse(input_uri).path)
+        asset_id, extension = get_asset_info(fn)
+        input_dir = os.path.join(data_base_dir, asset_id)
+
+        # 2. download input
+        dl_result = download_uri(input_uri, input_dir, fn, extension)
         logger.info(dl_result)
 
         prov_steps.append(dl_result.provenance)
 
-        input_path = dl_result.file_path
-        asset_id, extension = get_asset_info(input_path)
-
-        # 2. do the actual audio extraction
-        extraction_prov = ffmpeg_audio_extraction(input_path, asset_id, extension)
-        prov_steps.append(extraction_prov)
+        # 3. do the actual audio extraction
+        extraction_result = ffmpeg_audio_extraction(
+            dl_result.file_path, asset_id, extension, input_dir
+        )
+        prov_steps.append(extraction_result["prov"])
 
         end_time = (time.time() - start_time) * 1000
         final_prov = Provenance(
@@ -45,26 +49,28 @@ def run(input_uri: str, output_uri: str = "") -> bool:
                 "file_extension": ae_file_extension,
             },
             input_data=input_uri,
-            output_data=output_uri if output_uri else dl_result.output_path,
+            output_data=output_uri if output_uri else input_dir,
             steps=prov_steps,
         )
 
-        # 3. save provenance to json file
-        save_provenance(final_prov, dl_result.output_path)
+        # 4. save provenance to json file
+        save_provenance(final_prov, input_dir)
 
-        # 4. transfer all output
+        # 5. transfer all output
         if output_uri:
-            success = transfer_output(dl_result.output_path, output_uri, asset_id)
+            success = transfer_output(input_dir, output_uri, asset_id)
             if not success:
-                remove_all_input_output(dl_result.output_path)
+                remove_all_input_output(input_dir)
                 raise Exception("Upload failure: Could not upload output to S3")
-            remove_all_input_output(dl_result.output_path)
+            remove_all_input_output(input_dir)
         else:
             logger.info("No output_uri specified, so all is done")
 
-        return True
+        return {"audio": extraction_result["output_fn"], "provenance": prov_filename}
 
     except Exception as e:
         logger.error(f"Worker failed! Exception raised: {e}")
-        remove_all_input_output(dl_result.output_path)
+        # Check if variable exists (might not if exception raised from download_uri)
+        if "dl_result" in locals():
+            remove_all_input_output(input_dir)
         raise e

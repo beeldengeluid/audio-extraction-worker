@@ -28,10 +28,11 @@ StatusToHTTP = {
 
 class Task(BaseModel):
     input_uri: str
-    output_uri: str
+    output_uri: str = ""
     status: Status = Status.CREATED
     id: str | None = None
     error_msg: str | None = None
+    response: dict | None = None
 
 
 all_tasks: dict[str, Task] = {}
@@ -64,16 +65,17 @@ def try_extraction(task: Task):
     try:
         task.status = Status.PROCESSING
         update_task(task)
-        success = run(task.input_uri, task.output_uri)
-        if success:
+        outputs = run(task.input_uri, task.output_uri)
+        if outputs:
             task.status = Status.DONE
+            task.response = outputs
             logger.info(f"Successfully extracted audio for task {task.id}")
     except Exception as e:
         logger.error("Failed to run audio extraction")
         logger.exception(e)
         task.status = Status.ERROR
     update_task(task)
-    logger.info(f"Finished with task {task.id}")
+    logger.info(f"Task {task.id} has been updated")
 
 
 @api.get("/tasks")

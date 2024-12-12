@@ -12,6 +12,7 @@ s3_folder_in_bucket = os.environ.get("S3_FOLDER_IN_BUCKET", "")
 
 # Audio extraction params
 ae_file_extension = os.environ.get("AE_FILE_EXTENSION", "wav")
+prov_filename = os.environ.get("PROVENANCE_FILENAME", "ae_provenance.json")
 
 assert data_base_dir, "Please add DATA_BASE_DIR to your environment"
 assert data_base_dir not in [".", "/"], "Please enter an absolute, non-root path"
@@ -26,3 +27,5 @@ assert ae_file_extension in [
     "wav",
     "mp3",
 ], "Please use one of: [wav, mp3] for AE_FILE_EXTENSION"
+
+assert prov_filename, "Please add PROVENANCE_FILENAME to your environment"
