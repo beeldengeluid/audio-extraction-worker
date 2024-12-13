@@ -6,7 +6,6 @@ from base_util import (
     Provenance,
     run_shell_command,
     remove_all_input_output,
-    run_shell_command_with_output,
 )
 from config import ae_file_extension
 
@@ -26,12 +25,12 @@ def ffmpeg_audio_extraction(
     start_time = time.time()
 
     # Get output of "ffmpeg -version"
-    ffmpeg_ver_cmd = run_shell_command_with_output(["ffmpeg", "-version"])
-    if not ffmpeg_ver_cmd:
+    success, ffmpeg_ver = run_shell_command(["ffmpeg", "-version"])
+    if not success:
         raise Exception("Running ffmpeg to extract audio failed")
 
     # Add only the ffmpeg version number info to prov
-    ffmpeg_ver = " ".join(ffmpeg_ver_cmd.split()[:3])
+    ffmpeg_ver = " ".join(ffmpeg_ver.split()[:3])
 
     provenance = Provenance(
         activity_name="Audio extraction",
@@ -74,7 +73,8 @@ def ffmpeg_audio_extraction(
 
 def extract_audio(input_path: str, output_path: str) -> bool:
     logger.debug(f"Running ffmpeg for file: {input_path}")
-    return run_shell_command(["ffmpeg", "-i", input_path, output_path])
+    success, _ = run_shell_command(["ffmpeg", "-i", input_path, output_path])
+    return success
 
 
 def _is_transcodable(extension):

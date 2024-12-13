@@ -58,10 +58,7 @@ def run(input_uri: str, output_uri: str = "") -> dict:
 
         # 5. transfer all output
         if output_uri:
-            success = transfer_output(input_dir, output_uri, asset_id)
-            if not success:
-                remove_all_input_output(input_dir)
-                raise Exception("Upload failure: Could not upload output to S3")
+            transfer_output(input_dir, output_uri, asset_id)
             remove_all_input_output(input_dir)
         else:
             logger.info("No output_uri specified, so all is done")

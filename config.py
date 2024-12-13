@@ -6,9 +6,9 @@ import validators
 data_base_dir = os.environ.get("DATA_BASE_DIR", "")
 
 # s3 connection params
-s3_endpoint_url = os.environ.get("S3_ENDPOINT_URL", "")
-s3_bucket = os.environ.get("S3_BUCKET", "")
-s3_folder_in_bucket = os.environ.get("S3_FOLDER_IN_BUCKET", "")
+s3_endpoint_url = os.environ.get("S3_ENDPOINT_URL")
+s3_bucket = os.environ.get("S3_BUCKET")
+s3_folder_in_bucket = os.environ.get("S3_FOLDER_IN_BUCKET")
 
 # Audio extraction params
 ae_file_extension = os.environ.get("AE_FILE_EXTENSION", "wav")

@@ -40,23 +40,20 @@ all_tasks: dict[str, Task] = {}
 current_task: Optional[Task] = None
 
 
-def delete_task(task_id) -> bool:
+def delete_task(task_id):
     try:
         del all_tasks[task_id]
     except KeyError:
-        return False
-    return True
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
+        )
 
 
-def update_task(task: Task) -> bool:
+def update_task(task: Task):
     if not task or not task.id:
-        logger.warning("Tried to update task without ID")
-        return False
-    try:
-        all_tasks[task.id] = task
-    except KeyError:
-        return False
-    return True
+        raise Exception("Tried to update task without task or ID")
+
+    all_tasks[task.id] = task
 
 
 def try_extraction(task: Task):
@@ -74,6 +71,7 @@ def try_extraction(task: Task):
         logger.error("Failed to run audio extraction")
         logger.exception(e)
         task.status = Status.ERROR
+        task.error_msg = str(e)
     update_task(task)
     logger.info(f"Task {task.id} has been updated")
 
@@ -126,19 +124,18 @@ async def get_task(task_id: str, response: Response):
 
 @api.delete("/tasks/{task_id}")
 async def remove_task(task_id: str):
-    success = delete_task(task_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found"
-        )
-    return {
-        "msg": (
-            f"Successfully deleted task {task_id}"
-            if success
-            else f"Failed to delete task {task_id}"
-        ),
-        "task_id": task_id,
-    }
+    try:
+        delete_task(task_id)
+        return {
+            "msg": f"Successfully deleted task {task_id}",
+            "task_id": task_id,
+        }
+    except HTTPException as e:
+        logger.error(e)
+        return {
+            "msg": f"Failed to delete task {task_id}",
+            "task_id": task_id,
+        }
 
 
 @api.get("/ping")

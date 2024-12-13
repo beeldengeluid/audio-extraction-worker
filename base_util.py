@@ -46,26 +46,7 @@ def extension_to_mime_type(extension: str) -> str:
 
 
 # used by transcode.py
-def run_shell_command(command: List[str], ret_output=False) -> bool:
-    cmd = " ".join(command)
-    logger.info("Executing command:")
-    logger.info(cmd)
-
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,  # needed to support file glob
-    )
-
-    stdout, stderr = process.communicate()
-    logger.info(stdout)
-    logger.error(stderr)
-    logger.info(f"Process is done: return code {process.returncode}")
-    return process.returncode == 0
-
-
-def run_shell_command_with_output(command: List[str]) -> str:
+def run_shell_command(command: List[str]) -> Tuple[bool, str]:
     cmd = " ".join(command)
     logger.info("Executing command:")
     logger.info(cmd)
@@ -82,8 +63,8 @@ def run_shell_command_with_output(command: List[str]) -> str:
     logger.error(stderr)
     logger.info(f"Process is done: return code {process.returncode}")
     if process.returncode == 0:
-        return stdout.decode()
-    return stderr.decode()
+        return True, stdout.decode()
+    return False, stderr.decode()
 
 
 def validate_http_uri(http_uri: str) -> bool:
@@ -132,16 +113,15 @@ def transfer_output(
     output_path: str,
     output_uri: str,
     asset_id: str,
-) -> bool:
+):
     logger.info(f"Transferring {output_path} to S3 (destination={output_uri})")
     if not s3_endpoint_url:
-        logger.warning("Transfer to S3 configured without an S3_ENDPOINT_URL!")
-        return False
+        raise Exception("Transfer to S3 configured without an S3_ENDPOINT_URL!")
 
     s3_bucket, s3_folder_in_bucket = parse_s3_uri(output_uri)
 
     s3 = S3Store(s3_endpoint_url)
-    return s3.transfer_to_s3(
+    s3.transfer_to_s3(
         s3_bucket,
         s3_folder_in_bucket,
         [
