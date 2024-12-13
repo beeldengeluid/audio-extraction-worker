@@ -7,7 +7,7 @@ from base_util import (
     run_shell_command,
     remove_all_input_output,
 )
-from config import ae_file_extension
+from config import AE_FILE_EXTENSION
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def ffmpeg_audio_extraction(
             f"Audio extraction failure: Input with extension {extension} is not transcodable"
         )
 
-    output_file = os.path.join(output_path, f"{asset_id}.{ae_file_extension}")
+    output_file = os.path.join(output_path, f"{asset_id}.{AE_FILE_EXTENSION}")
 
     # delete output if it exists
     if os.path.exists(output_file):
@@ -68,7 +68,7 @@ def ffmpeg_audio_extraction(
     provenance.processing_time_ms = (time.time() - start_time) * 1000
     provenance.output_data = output_file
     provenance.steps.append("Audio extraction successful")
-    return {"prov": provenance, "output_fn": f"{asset_id}.{ae_file_extension}"}
+    return {"prov": provenance, "output_fn": f"{asset_id}.{AE_FILE_EXTENSION}"}
 
 
 def extract_audio(input_path: str, output_path: str) -> bool:

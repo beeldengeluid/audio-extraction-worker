@@ -5,7 +5,7 @@ import json
 from typing import Tuple, List
 from dataclasses import dataclass, field, asdict
 from urllib.parse import urlparse
-from config import s3_endpoint_url, ae_file_extension, prov_filename
+from config import S3_ENDPOINT_URL, AE_FILE_EXTENSION, PROV_FILENAME
 from s3_util import parse_s3_uri, S3Store
 
 
@@ -115,17 +115,17 @@ def transfer_output(
     asset_id: str,
 ):
     logger.info(f"Transferring {output_path} to S3 (destination={output_uri})")
-    if not s3_endpoint_url:
+    if not S3_ENDPOINT_URL:
         raise Exception("Transfer to S3 configured without an S3_ENDPOINT_URL!")
 
     s3_bucket, s3_folder_in_bucket = parse_s3_uri(output_uri)
 
-    s3 = S3Store(s3_endpoint_url)
+    s3 = S3Store(S3_ENDPOINT_URL)
     s3.transfer_to_s3(
         s3_bucket,
         s3_folder_in_bucket,
         [
-            os.path.join(output_path, f"{asset_id}.{ae_file_extension}"),
-            os.path.join(output_path, prov_filename),
+            os.path.join(output_path, f"{asset_id}.{AE_FILE_EXTENSION}"),
+            os.path.join(output_path, PROV_FILENAME),
         ],
     )

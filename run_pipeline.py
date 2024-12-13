@@ -11,7 +11,7 @@ from base_util import (
     Provenance,
 )
 from transcode import ffmpeg_audio_extraction
-from config import data_base_dir, prov_filename, ae_file_extension
+from config import DATA_BASE_DIR, PROV_FILENAME, AE_FILE_EXTENSION
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def run(input_uri: str, output_uri: str = "") -> dict:
         # 1. get all needed info about input
         fn = os.path.basename(urlparse(input_uri).path)
         asset_id, extension = get_asset_info(fn)
-        input_dir = os.path.join(data_base_dir, asset_id)
+        input_dir = os.path.join(DATA_BASE_DIR, asset_id)
 
         # 2. download input
         dl_result = download_uri(input_uri, input_dir, fn, extension)
@@ -46,7 +46,7 @@ def run(input_uri: str, output_uri: str = "") -> dict:
             processing_time_ms=end_time,
             start_time_unix=start_time,
             parameters={
-                "file_extension": ae_file_extension,
+                "file_extension": AE_FILE_EXTENSION,
             },
             input_data=input_uri,
             output_data=output_uri if output_uri else input_dir,
@@ -63,7 +63,7 @@ def run(input_uri: str, output_uri: str = "") -> dict:
         else:
             logger.info("No output_uri specified, so all is done")
 
-        return {"audio": extraction_result["output_fn"], "provenance": prov_filename}
+        return {"audio": extraction_result["output_fn"], "provenance": PROV_FILENAME}
 
     except Exception as e:
         logger.error(f"Worker failed! Exception raised: {e}")
