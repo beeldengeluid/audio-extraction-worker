@@ -1,8 +1,8 @@
+from api import api
+import uvicorn
 import logging
 import sys
 from base_util import LOG_FORMAT
-from config import input_uri, output_uri
-import run_pipeline
 
 
 # initialises the root logger
@@ -21,11 +21,8 @@ if __name__ == "__main__":
 
     # first read the CLI arguments
     parser = ArgumentParser(description="audio-extraction-worker")
-    parser.add_argument("--input", action="store", dest="input_uri", default=input_uri)
-    parser.add_argument(
-        "--output", action="store", dest="output_uri", default=output_uri
-    )
     parser.add_argument("--log", action="store", dest="loglevel", default="INFO")
+    parser.add_argument("--port", action="store", dest="port", default="5333")
     args = parser.parse_args()
 
     # initialises the root logger
@@ -40,7 +37,5 @@ if __name__ == "__main__":
     logger.info(f"Logger initialized (log level: {log_level})")
     logger.info(f"Got the following CMD line arguments: {args}")
 
-    if args.input_uri:
-        run_pipeline.run(args.input_uri, args.output_uri)
-    else:
-        logger.error("Please supply the --input param (--output is optional)")
+    port = int(args.port)
+    uvicorn.run(api, port=port, host="0.0.0.0")

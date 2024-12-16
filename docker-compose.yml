@@ -4,10 +4,11 @@ services:
     volumes:
       - ./data:/data
     container_name: audio-extraction-worker
-    # args: ["--output-uri"]
     env_file:
       - .env.override
     logging:
       options:
         max-size: 20m
     restart: no
+    ports: 
+    - "5333:5333"

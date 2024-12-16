@@ -1,63 +1,73 @@
 import logging
+import time
 import os
-from config import s3_endpoint_url, s3_bucket, s3_folder_in_bucket
+from urllib.parse import urlparse
 from download import download_uri
-from base_util import get_asset_info
-from s3_util import S3Store
-from transcode import ffmpeg_transcode
+from base_util import (
+    get_asset_info,
+    remove_all_input_output,
+    save_provenance,
+    transfer_output,
+    Provenance,
+)
+from transcode import ffmpeg_audio_extraction
+from config import DATA_BASE_DIR, PROV_FILENAME, AE_FILE_EXTENSION
 
 logger = logging.getLogger(__name__)
 
 
-def run(input_uri: str, output_uri: str) -> bool:
+def run(input_uri: str, output_uri: str = "") -> dict:
     logger.info(f"Processing {input_uri} (save to --> {output_uri})")
-    # 1. download input
-    result = download_uri(input_uri)
-    logger.info(result)
-    if not result:
-        logger.error("Could not obtain input, quitting...")
-        return False
+    start_time = time.time()
+    prov_steps = []  # track provenance
 
-    input_path = result.file_path
-    asset_id, extension = get_asset_info(input_path)
+    try:
+        # 1. get all needed info about input
+        fn = os.path.basename(urlparse(input_uri).path)
+        asset_id, extension = get_asset_info(fn)
+        input_dir = os.path.join(DATA_BASE_DIR, asset_id)
 
-    # 2. do the actual transcoding
-    output_path = ffmpeg_transcode(input_path, asset_id, extension)
-    if not output_path:
-        logger.error("The transcode failed to yield a valid file to continue with")
-        return False
+        # 2. download input
+        dl_result = download_uri(input_uri, input_dir, fn, extension)
+        logger.info(dl_result)
 
-    # 3. transfer output
-    if output_uri:
-        transfer_output(output_path, asset_id)
-    else:
-        logger.info("No output_uri specified, so all is done")
-    return True
+        prov_steps.append(dl_result.provenance)
 
-
-# if (S3) output_uri is supplied transfers data to S3 location
-def transfer_output(output_path: str, asset_id: str) -> bool:
-    logger.info(f"Transferring {output_path} to S3 (asset={asset_id})")
-    if any(
-        [
-            not x
-            for x in [
-                s3_endpoint_url,
-                s3_bucket,
-                s3_folder_in_bucket,
-            ]
-        ]
-    ):
-        logger.warning(
-            "TRANSFER_ON_COMPLETION configured without all the necessary S3 settings"
+        # 3. do the actual audio extraction
+        extraction_result = ffmpeg_audio_extraction(
+            dl_result.file_path, asset_id, extension, input_dir
         )
-        return False
+        prov_steps.append(extraction_result["prov"])
 
-    s3 = S3Store(s3_endpoint_url)
-    return s3.transfer_to_s3(
-        s3_bucket,
-        os.path.join(
-            s3_folder_in_bucket, asset_id
-        ),  # assets/<program ID>__<carrier ID>
-        [output_path],
-    )
+        end_time = (time.time() - start_time) * 1000
+        final_prov = Provenance(
+            activity_name="Audio Extraction Worker",
+            activity_description="Worker that gets a video file as input and outputs an audio file with a given extension",
+            processing_time_ms=end_time,
+            start_time_unix=start_time,
+            parameters={
+                "file_extension": AE_FILE_EXTENSION,
+            },
+            input_data=input_uri,
+            output_data=output_uri if output_uri else input_dir,
+            steps=prov_steps,
+        )
+
+        # 4. save provenance to json file
+        save_provenance(final_prov, input_dir)
+
+        # 5. transfer all output
+        if output_uri:
+            transfer_output(input_dir, output_uri, asset_id)
+            remove_all_input_output(input_dir)
+        else:
+            logger.info("No output_uri specified, so all is done")
+
+        return {"audio": extraction_result["output_fn"], "provenance": PROV_FILENAME}
+
+    except Exception as e:
+        logger.error(f"Worker failed! Exception raised: {e}")
+        # Check if variable exists (might not if exception raised from download_uri)
+        if "dl_result" in locals():
+            remove_all_input_output(input_dir)
+        raise e

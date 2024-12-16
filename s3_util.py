@@ -103,35 +103,29 @@ class S3Store:
 
     def transfer_to_s3(
         self, bucket: str, path: str, file_list: List[str], tar_archive_path: str = ""
-    ) -> bool:
+    ):
         # first check if the file_list needs to be compressed (into tar)
         if tar_archive_path:
             tar_location = tar_list_of_files(tar_archive_path, file_list)
             if not tar_location:
-                logger.error(
-                    "Could not archive the file list before transferring to S3"
+                raise Exception(
+                    "Could not archive the output before transferring to S3"
                 )
-                return False
 
             file_list = [tar_archive_path]  # now the file_list just has the tar
 
         # now go ahead and upload whatever is in the file list
         for f in file_list:
-            try:
-                self.client.upload_file(
-                    Filename=f,
-                    Bucket=bucket,
-                    Key=os.path.join(
-                        path,
-                        generate_asset_id_from_input_file(  # file name with extension
-                            f, True
-                        ),
+            self.client.upload_file(
+                Filename=f,
+                Bucket=bucket,
+                Key=os.path.join(
+                    path,
+                    generate_asset_id_from_input_file(  # file name with extension
+                        f, True
                     ),
-                )
-            except Exception:  # TODO figure out which Exception to catch specifically
-                logger.exception(f"Failed to upload {f}")
-                return False
-        return True
+                ),
+            )
 
     def download_file(self, bucket: str, object_name: str, output_folder: str) -> bool:
         logger.info(f"Downloading {bucket}:{object_name} into {output_folder}")  # noqa

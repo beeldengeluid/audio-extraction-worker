@@ -1,64 +1,80 @@
 import logging
 import os
-from typing import Optional
+import time
 
-import base_util
-from config import data_base_dir
-from config import ae_file_extension, ae_convert_to_mono, ae_samplerate_hz
+from base_util import (
+    Provenance,
+    run_shell_command,
+    remove_all_input_output,
+)
+from config import AE_FILE_EXTENSION
 
 logger = logging.getLogger(__name__)
 
 
-def ffmpeg_transcode(input_path, asset_id, extension) -> Optional[str]:
+def ffmpeg_audio_extraction(
+    input_file: str,
+    asset_id: str,
+    extension: str,
+    output_path: str,
+) -> dict:
     logger.info(
-        f"Running audio extraction for input_path: {input_path} asset_id: ({asset_id}) extension: ({extension})"
+        f"Running audio extraction for input_path: {input_file} asset_id: ({asset_id}) extension: ({extension})"
+    )
+
+    start_time = time.time()
+
+    # Get output of "ffmpeg -version"
+    success, ffmpeg_ver = run_shell_command(["ffmpeg", "-version"])
+    if not success:
+        raise Exception("Running ffmpeg to extract audio failed")
+
+    # Add only the ffmpeg version number info to prov
+    ffmpeg_ver = " ".join(ffmpeg_ver.split()[:3])
+
+    provenance = Provenance(
+        activity_name="Audio extraction",
+        activity_description="Checks if audio can be extracted from the input, then extracts it if so",
+        start_time_unix=start_time,
+        software_version=ffmpeg_ver,
+        input_data=input_file,
     )
 
     # if the input format is not supported, fail
     if not _is_transcodable(extension):
-        logger.error(f"input with extension {extension} is not transcodable")
-        return None
+        raise Exception(
+            f"Audio extraction failure: Input with extension {extension} is not transcodable"
+        )
 
-    transcoded_file_path = os.path.join(
-        data_base_dir, "output", f"{asset_id}.{ae_file_extension}"
-    )
+    output_file = os.path.join(output_path, f"{asset_id}.{AE_FILE_EXTENSION}")
 
-    # do not transcode if the output already exists
-    if os.path.exists(transcoded_file_path):
-        logger.info(f"{transcoded_file_path} already exists, exiting")
-        return transcoded_file_path
+    # delete output if it exists
+    if os.path.exists(output_file):
+        logger.info(f"File {output_file} already exists, overwriting...")
+        remove_all_input_output(output_file)
 
     # go ahead and transcode the input file
     success = extract_audio(
-        input_path,
-        transcoded_file_path,
+        input_file,
+        output_file,
     )
     if not success:
-        logger.error("Transcode failed")
-        return None
+        raise Exception("Running ffmpeg to extract audio failed")
 
     logger.info(
-        f"Transcode of {extension} successful, returning: {transcoded_file_path}"
+        f"Audio extraction of {input_file} successful, returning: {output_file}"
     )
 
-    return transcoded_file_path
+    provenance.processing_time_ms = (time.time() - start_time) * 1000
+    provenance.output_data = output_file
+    provenance.steps.append("Audio extraction successful")
+    return {"prov": provenance, "output_fn": f"{asset_id}.{AE_FILE_EXTENSION}"}
 
 
 def extract_audio(input_path: str, output_path: str) -> bool:
-    logger.debug(f"Extracting audio from file: {input_path}")
-    ffmpeg_cmd = ["ffmpeg", "-i", input_path]
-
-    if ae_convert_to_mono:
-        ffmpeg_cmd = ffmpeg_cmd + ["-ac", "1"]
-    if ae_samplerate_hz != 0:
-        ffmpeg_cmd = ffmpeg_cmd + ["-ar", str(ae_samplerate_hz)]
-
-    output_dir, _ = os.path.split(output_path)
-    if not os.path.exists(output_dir):
-        logger.info(f"{output_dir} does not exist, creating it now")
-        os.makedirs(output_dir)
-
-    return base_util.run_shell_command(ffmpeg_cmd + [output_path])
+    logger.debug(f"Running ffmpeg for file: {input_path}")
+    success, _ = run_shell_command(["ffmpeg", "-i", input_path, output_path])
+    return success
 
 
 def _is_transcodable(extension):
