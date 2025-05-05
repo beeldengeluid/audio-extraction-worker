@@ -5,4 +5,4 @@ on:
 
 jobs:
   test:
-    uses: beeldengeluid/gha-workflows/.github/workflows/check-poetry-project.yml@0962147f9ddc8aa1d4a69d821b7f51ea06015984 # v2025.02.26
+    uses: beeldengeluid/gha-workflows/.github/workflows/check-poetry-project.yml@b4e5d97323dd3d84c0b00960acb94bed82cc0f41 # v2025.05.01
