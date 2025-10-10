@@ -1,4 +1,4 @@
-FROM docker.io/python:3.11 AS req
+FROM docker.io/python:3.11.14.14 AS req
 
 RUN python3 -m pip install pipx && \
   python3 -m pipx ensurepath
@@ -11,7 +11,7 @@ COPY ./poetry.lock ./poetry.lock
 COPY ./pyproject.toml ./pyproject.toml
 RUN pipx run poetry export --format requirements.txt --output requirements.txt
 
-FROM docker.io/python:3.11
+FROM docker.io/python:3.11.14.14
 
 # install FFmpeg
 RUN apt-get -y update && \
